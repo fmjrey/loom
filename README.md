@@ -23,6 +23,7 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
     loom.attr  - graph attributes
     loom.label - graph labels
     loom.io    - read, write, and view graphs in external formats
+    loom.io.*  - I/O providers for rendering, viewing, and serializing graphs
 
 ### Documentation
 
@@ -178,6 +179,35 @@ Attributes on nodes and edges:
     (attrs attr-graph 4)
     => {:parity "even"}
 
+### Rendering, viewing, and serializing
+
+Loom supports pluggable providers for rendering, viewing, and serializing a graph, with default implementations stored in <code>\*default-\<impl-type\>\*</code> dynamic vars defined in the <code>loom.io</code> namespace, which also define convenient functions for using these default implementations.
+For example [GraphViz](http://www.graphviz.org) provides several rendering options which can be accessed by binding the <code>\*default-renderer\*</code> dynamic var:
+
+    (binding [*default-renderer* (loom.io.provider/renderer :graphviz :svg)]
+      (view wdg))
+
+Alternatively implementations can also be invoked directly without having to change the default var:
+
+    (view (loom.io.provider/render (loom.io.provider/renderer :graphviz :svg) wdg))
+    
+Saving a graph to a file for later reuse can be done using a serializer:
+
+    ; define s as the serialized form of wdg using the default serializer (pr-str)
+    (def s (encode wdg))
+    => "#loom.graph.BasicEditableWeightedDigraph{:nodeset #{:a :c :b :d}, :adj {:d {:b 10}, :c {:d 30}, :a {:c 20, :b 10}}, :in {:d #{:c}, :c #{:a}, :b #{:a :d}}}"
+    ;  ^-- wdg serialized as a string that can be read by the clojure reader.
+    ; restore the graph from its serialized form using the default serializer (read-string)
+    (decode s)
+    => #loom.graph.BasicEditableWeightedDigraph{:nodeset #{:a :c :b :d}, :adj {:d {:b 10}, :c {:d 30}, :a {:c 20, :b 10}}, :in {:d #{:c}, :c #{:a}, :b #{:a :d}}}
+    
+Serializing may not always work if node types are not standard to clojure. Note that using clojure reader is fine for experimentation and development, but unsecure for production. For a more robust and secure way to serialize a graph prefer the [edn](https://github.com/edn-format/edn) format (edn serializer coming soon...).
+
+By default a graph is rendered as a PNG image using [GraphViz](http://www.graphviz.org), is viewed using the default system application for the rendered format, and is serialized/deserialized using clojure <code>pr-str</code> and <code>read-string</code>.
+
+
+See <code>loom.io.\*</code> namespaces for more details and options.
+
 ## Dependencies
 
 Nothing but Clojure. There is optional support for visualization via [GrapViz](http://graphviz.org).
@@ -194,6 +224,7 @@ Names in no particular order:
 * [Aysylu Greenberg] (https://github.com/aysylu), [aysylu [dot] greenberg [at] gmail [dot] com](mailto:aysylu.greenberg@gmail.com), [@aysylu22](http://twitter.com/aysylu22)
 * [Robert Lachlan](https://github.com/heffalump), [robertlachlan@gmail.com](mailto:robertlachlan@gmail.com)
 * [Stephen Kockentiedt](https://github.com/s-k)
+* [François Rey](https://github.com/fmjrey)
 
 ## License
 

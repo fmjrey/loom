@@ -467,7 +467,7 @@ on adjacency lists."
   other graphs, adjacency maps, edges, or nodes."
   [g & inits]
   (letfn [(build [g init]
-            (cond
+           (cond
              ;; graph
              (graph? init)
              (if (and (weighted? g) (weighted? init))
@@ -480,16 +480,18 @@ on adjacency lists."
                    (add-edges* (edges init))))
              ;; adacency map
              (map? init)
-             (let [es (if (map? (val (first init)))
-                        (for [[n nbrs] init
-                              [nbr wt] nbrs]
-                          [n nbr wt])
-                        (for [[n nbrs] init
-                              nbr nbrs]
-                          [n nbr]))]
-               (-> g
-                   (add-nodes* (keys init))
-                   (add-edges* es)))
+             (if (not-empty init)
+               (let [es (if (map? (val (first init)))
+                         (for [[n nbrs] init
+                               [nbr wt] nbrs]
+                           [n nbr wt])
+                         (for [[n nbrs] init
+                               nbr nbrs]
+                           [n nbr]))]
+                 (-> g
+                     (add-nodes* (keys init))
+                     (add-edges* es)))
+               g)
              ;; edge
              (sequential? init) (add-edges g init)
              ;; node
